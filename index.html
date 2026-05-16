@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zara 🌸 Admin Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pink: #f472b6;
+    --pink-light: #fce7f3;
+    --pink-dark: #be185d;
+    --bg: #0f0a0d;
+    --surface: #1a1018;
+    --surface2: #231520;
+    --border: #3d1f30;
+    --text: #fdf2f8;
+    --muted: #9d7a8a;
+    --green: #34d399;
+    --red: #f87171;
+    --gold: #fbbf24;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* Login Screen */
+  #login-screen {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .login-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px;
+    width: 340px;
+    text-align: center;
+  }
+
+  .login-card h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    color: var(--pink);
+    margin-bottom: 8px;
+  }
+
+  .login-card p {
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 28px;
+  }
+
+  .login-input {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 15px;
+    margin-bottom: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .login-input:focus { border-color: var(--pink); }
+
+  .btn-pink {
+    width: 100%;
+    padding: 13px;
+    background: linear-gradient(135deg, var(--pink-dark), var(--pink));
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .btn-pink:hover { opacity: 0.85; }
+
+  /* Main Layout */
+  #app { display: none; }
+
+  .sidebar {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    width: 220px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 24px 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar-logo {
+    padding: 0 20px 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+
+  .sidebar-logo h2 {
+    font-family: 'Playfair Display', serif;
+    color: var(--pink);
+    font-size: 22px;
+  }
+
+  .sidebar-logo span {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .nav-item {
+    padding: 11px 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: var(--muted);
+    transition: all 0.15s;
+    border-left: 3px solid transparent;
+  }
+
+  .nav-item:hover { color: var(--text); background: var(--surface2); }
+  .nav-item.active { color: var(--pink); border-left-color: var(--pink); background: rgba(244,114,182,0.07); }
+
+  .main {
+    margin-left: 220px;
+    padding: 32px;
+    min-height: 100vh;
+  }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .page-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    color: var(--pink);
+    margin-bottom: 24px;
+  }
+
+  /* Cards */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+  }
+
+  .stat-card .label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .stat-card .value { font-size: 32px; font-weight: 700; color: var(--pink); }
+  .stat-card .sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  /* Bot Info */
+  .info-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  .info-card h3 { font-size: 14px; color: var(--muted); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .info-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .info-row:last-child { border-bottom: none; }
+  .info-row .key { font-size: 13px; color: var(--muted); }
+  .info-row .val { font-size: 13px; color: var(--text); font-weight: 500; }
+
+  /* Table */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .table-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .table-header h3 { font-size: 14px; font-weight: 600; }
+
+  table { width: 100%; border-collapse: collapse; }
+  th { padding: 12px 16px; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; text-align: left; background: var(--surface2); }
+  td { padding: 12px 16px; font-size: 13px; border-bottom: 1px solid var(--border); color: var(--text); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(244,114,182,0.04); }
+
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .badge-green { background: rgba(52,211,153,0.15); color: var(--green); }
+  .badge-pink { background: rgba(244,114,182,0.15); color: var(--pink); }
+
+  /* Code Editor */
+  .editor-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .tab-btn {
+    padding: 8px 18px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.15s;
+  }
+
+  .tab-btn.active { background: var(--pink-dark); color: white; border-color: var(--pink-dark); }
+
+  .editor-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .editor-toolbar {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .editor-toolbar span { font-size: 12px; color: var(--muted); }
+
+  textarea.code-area {
+    width: 100%;
+    min-height: 420px;
+    background: #0d0810;
+    color: #e2c0d8;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    padding: 20px;
+    border: none;
+    outline: none;
+    resize: vertical;
+  }
+
+  .editor-footer {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .btn-save {
+    padding: 9px 22px;
+    background: linear-gradient(135deg, var(--pink-dark), var(--pink));
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .btn-save:hover { opacity: 0.85; }
+
+  .btn-restart {
+    padding: 9px 22px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--muted);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-restart:hover { border-color: var(--pink); color: var(--pink); }
+
+  .save-status {
+    font-size: 12px;
+    color: var(--green);
+    display: none;
+  }
+
+  /* Broadcast */
+  .broadcast-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+  }
+
+  .broadcast-card textarea {
+    width: 100%;
+    min-height: 120px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 14px;
+    padding: 14px;
+    outline: none;
+    resize: vertical;
+    margin-bottom: 14px;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .broadcast-card textarea:focus { border-color: var(--pink); }
+
+  /* Chat logs */
+  .log-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+
+  .log-meta { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
+  .log-user { background: var(--surface2); border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-bottom: 8px; }
+  .log-zara { background: rgba(244,114,182,0.08); border: 1px solid rgba(244,114,182,0.15); border-radius: 8px; padding: 10px 14px; font-size: 13px; color: var(--pink); }
+  .log-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; opacity: 0.6; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .online-dot {
+    width: 8px; height: 8px;
+    background: var(--green);
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 6px;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div id="login-screen">
+  <div class="login-card">
+    <h1>Zara 🌸</h1>
+    <p>Admin Dashboard — Authorized Only</p>
+    <input type="password" class="login-input" id="pass-input" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="btn-pink" onclick="doLogin()">Login</button>
+  </div>
+</div>
+
+<!-- App -->
+<div id="app">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <h2>Zara 🌸</h2>
+      <span>Admin Panel</span>
+    </div>
+    <div class="nav-item active" onclick="showPage('dashboard', this)">📊 Dashboard</div>
+    <div class="nav-item" onclick="showPage('users', this)">👥 Users</div>
+    <div class="nav-item" onclick="showPage('logs', this)">💬 Chat Logs</div>
+    <div class="nav-item" onclick="showPage('broadcast', this)">📢 Broadcast</div>
+    <div class="nav-item" onclick="showPage('editor', this)">⚙️ Code Editor</div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- Dashboard -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-title">Dashboard</div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="label">Total Users</div>
+          <div class="value" id="stat-users">—</div>
+          <div class="sub">All time</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Total Messages</div>
+          <div class="value" id="stat-msgs">—</div>
+          <div class="sub">Logged</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Bot Status</div>
+          <div class="value" style="font-size:16px;padding-top:8px"><span class="online-dot"></span>Online</div>
+          <div class="sub">Running on Railway</div>
+        </div>
+      </div>
+
+      <div class="info-card">
+        <h3>Bot Info</h3>
+        <div class="info-row"><span class="key">Name</span><span class="val">Zara 🌸</span></div>
+        <div class="info-row"><span class="key">Username</span><span class="val">@ZaraAssist_Bot</span></div>
+        <div class="info-row"><span class="key">URL</span><span class="val">t.me/ZaraAssist_Bot</span></div>
+        <div class="info-row"><span class="key">AI Model</span><span class="val">Gemini 2.0 Flash</span></div>
+        <div class="info-row"><span class="key">Version</span><span class="val">v0.0</span></div>
+        <div class="info-row"><span class="key">Host</span><span class="val">Railway</span></div>
+      </div>
+    </div>
+
+    <!-- Users -->
+    <div class="page" id="page-users">
+      <div class="page-title">Users</div>
+      <div class="table-wrap">
+        <div class="table-header">
+          <h3>All Users</h3>
+          <span id="user-count" style="font-size:12px;color:var(--muted)"></span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>User ID</th>
+              <th>Username</th>
+              <th>Name</th>
+              <th>Joined</th>
+            </tr>
+          </thead>
+          <tbody id="users-table">
+            <tr><td colspan="4" style="text-align:center;color:var(--muted);padding:30px">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Chat Logs -->
+    <div class="page" id="page-logs">
+      <div class="page-title">Chat Logs</div>
+      <div id="logs-container">
+        <div style="text-align:center;color:var(--muted);padding:40px">Loading...</div>
+      </div>
+    </div>
+
+    <!-- Broadcast -->
+    <div class="page" id="page-broadcast">
+      <div class="page-title">Broadcast</div>
+      <div class="broadcast-card">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Send a message to ALL users</p>
+        <textarea id="broadcast-msg" placeholder="Type your message here..."></textarea>
+        <button class="btn-save" onclick="sendBroadcast()">📢 Send Broadcast</button>
+        <div id="broadcast-status" style="margin-top:12px;font-size:13px;color:var(--green);display:none"></div>
+      </div>
+    </div>
+
+    <!-- Code Editor -->
+    <div class="page" id="page-editor">
+      <div class="page-title">Code Editor</div>
+      <div class="editor-tabs">
+        <button class="tab-btn active" onclick="switchTab('bot', this)">🤖 Bot Code (bot.py)</button>
+        <button class="tab-btn" onclick="switchTab('dashboard', this)">🖥️ Dashboard Code (index.html)</button>
+      </div>
+      <div class="editor-wrap">
+        <div class="editor-toolbar">
+          <span id="editor-filename">bot.py</span>
+          <span style="color:var(--green);font-size:11px">⚡ Save = Auto Restart</span>
+        </div>
+        <textarea class="code-area" id="code-editor" spellcheck="false" placeholder="Loading code..."></textarea>
+        <div class="editor-footer">
+          <button class="btn-save" onclick="saveCode()">💾 Save & Restart</button>
+          <button class="btn-restart" onclick="restartBot()">🔄 Restart Only</button>
+          <span class="save-status" id="save-status">✅ Saved!</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── Config ───────────────────────────────────────────────────────────────────
+const ADMIN_PASSWORD = "zara@admin2025"; // Change this!
+const API_BASE = ""; // Same origin (Flask backend)
+
+let currentTab = "bot";
+
+// ── Login ─────────────────────────────────────────────────────────────────────
+function doLogin() {
+  const pass = document.getElementById("pass-input").value;
+  if (pass === ADMIN_PASSWORD) {
+    document.getElementById("login-screen").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    loadDashboard();
+  } else {
+    document.getElementById("pass-input").style.borderColor = "var(--red)";
+    setTimeout(() => document.getElementById("pass-input").style.borderColor = "", 1000);
+  }
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+function showPage(name, el) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+  document.getElementById("page-" + name).classList.add("active");
+  el.classList.add("active");
+
+  if (name === "dashboard") loadDashboard();
+  if (name === "users") loadUsers();
+  if (name === "logs") loadLogs();
+  if (name === "editor") loadCode();
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────────────────
+async function loadDashboard() {
+  try {
+    const res = await fetch("/api/stats");
+    const data = await res.json();
+    document.getElementById("stat-users").textContent = data.total_users;
+    document.getElementById("stat-msgs").textContent = data.total_messages;
+  } catch(e) {
+    document.getElementById("stat-users").textContent = "N/A";
+    document.getElementById("stat-msgs").textContent = "N/A";
+  }
+}
+
+// ── Users ─────────────────────────────────────────────────────────────────────
+async function loadUsers() {
+  const tbody = document.getElementById("users-table");
+  try {
+    const res = await fetch("/api/users");
+    const data = await res.json();
+    document.getElementById("user-count").textContent = data.length + " users";
+    tbody.innerHTML = data.map(u => `
+      <tr>
+        <td><span class="badge badge-pink">${u.user_id}</span></td>
+        <td>${u.username ? "@"+u.username : "—"}</td>
+        <td>${u.first_name || "—"}</td>
+        <td>${new Date(u.joined_at).toLocaleDateString()}</td>
+      </tr>
+    `).join("") || "<tr><td colspan='4' style='text-align:center;color:var(--muted);padding:30px'>No users yet</td></tr>";
+  } catch(e) {
+    tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;color:var(--red);padding:30px'>Error loading users</td></tr>";
+  }
+}
+
+// ── Chat Logs ─────────────────────────────────────────────────────────────────
+async function loadLogs() {
+  const container = document.getElementById("logs-container");
+  try {
+    const res = await fetch("/api/logs");
+    const data = await res.json();
+    if (!data.length) {
+      container.innerHTML = "<div style='text-align:center;color:var(--muted);padding:40px'>No chat logs yet</div>";
+      return;
+    }
+    container.innerHTML = data.map(log => `
+      <div class="log-item">
+        <div class="log-meta">
+          👤 ${log.username ? "@"+log.username : log.user_id} &nbsp;•&nbsp; ${new Date(log.timestamp).toLocaleString()}
+        </div>
+        <div class="log-user">
+          <div class="log-label">User</div>
+          ${escapeHtml(log.user_message)}
+        </div>
+        <div class="log-zara">
+          <div class="log-label">Zara 🌸</div>
+          ${escapeHtml(log.zara_reply)}
+        </div>
+      </div>
+    `).join("");
+  } catch(e) {
+    container.innerHTML = "<div style='text-align:center;color:var(--red);padding:40px'>Error loading logs</div>";
+  }
+}
+
+// ── Broadcast ─────────────────────────────────────────────────────────────────
+async function sendBroadcast() {
+  const msg = document.getElementById("broadcast-msg").value.trim();
+  const status = document.getElementById("broadcast-status");
+  if (!msg) return;
+
+  try {
+    const res = await fetch("/api/broadcast", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({message: msg})
+    });
+    const data = await res.json();
+    status.textContent = "✅ " + data.message;
+    status.style.display = "block";
+    document.getElementById("broadcast-msg").value = "";
+    setTimeout(() => status.style.display = "none", 4000);
+  } catch(e) {
+    status.style.color = "var(--red)";
+    status.textContent = "❌ Failed to send broadcast";
+    status.style.display = "block";
+  }
+}
+
+// ── Code Editor ───────────────────────────────────────────────────────────────
+async function loadCode() {
+  const editor = document.getElementById("code-editor");
+  try {
+    const res = await fetch(`/api/code?file=${currentTab}`);
+    const data = await res.json();
+    editor.value = data.code;
+  } catch(e) {
+    editor.value = "// Could not load code";
+  }
+}
+
+function switchTab(tab, el) {
+  currentTab = tab;
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+  el.classList.add("active");
+  document.getElementById("editor-filename").textContent = tab === "bot" ? "bot.py" : "index.html";
+  loadCode();
+}
+
+async function saveCode() {
+  const code = document.getElementById("code-editor").value;
+  const status = document.getElementById("save-status");
+  try {
+    const res = await fetch("/api/code", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({file: currentTab, code: code})
+    });
+    const data = await res.json();
+    status.style.display = "inline";
+    status.textContent = "✅ " + data.message;
+    setTimeout(() => status.style.display = "none", 3000);
+  } catch(e) {
+    status.style.color = "var(--red)";
+    status.textContent = "❌ Save failed";
+    status.style.display = "inline";
+  }
+}
+
+async function restartBot() {
+  try {
+    await fetch("/api/restart", {method: "POST"});
+    alert("Bot restarting...");
+  } catch(e) {
+    alert("Restart failed");
+  }
+}
+
+function escapeHtml(str) {
+  return String(str || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+</script>
+</body>
+</html>
