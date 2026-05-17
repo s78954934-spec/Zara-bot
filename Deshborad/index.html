@@ -650,30 +650,4 @@ async function saveCode() {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({file: currentTab, code: code})
-    });
-    const data = await res.json();
-    status.style.display = "inline";
-    status.textContent = "✅ " + data.message;
-    setTimeout(() => status.style.display = "none", 3000);
-  } catch(e) {
-    status.style.color = "var(--red)";
-    status.textContent = "❌ Save failed";
-    status.style.display = "inline";
-  }
-}
-
-async function restartBot() {
-  try {
-    await fetch("/api/restart", {method: "POST"});
-    alert("Bot restarting...");
-  } catch(e) {
-    alert("Restart failed");
-  }
-}
-
-function escapeHtml(str) {
-  return String(str || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-}
-</script>
-</body>
-</html>
+   
