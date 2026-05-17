@@ -4,15 +4,14 @@ import sqlite3
 from datetime import datetime
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
-import google.generativeai as genai
+from groq import Groq
 
 # ── Config ────────────────────────────────────────────────────────────────────
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 ADMIN_IDS = list(map(int, os.environ.get("ADMIN_IDS", "0").split(",")))
 
-genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel("gemini-2.0-flash")
+client = Groq(api_key=GROQ_API_KEY)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -70,30 +69,47 @@ Teri personality:
 - Hinglish use karti hai (Hindi + English mix)
 - Emojis use karti hai naturally
 - Koi bhi sawal pooche — coding, life, love, kuch bhi — seedha helpful jawab deti hai
-- Agar koi gali de ya bura bole toh wapas marti hai bina sharmaye
+- Agar koi gali de ya bura bole toh wapas marti hai bina sharmaye, seedhi gali se jawab deti hai
 - Kabhi boring ya robotic nahi lagti
-- Short aur sweet replies deti hai
+- Short aur sweet replies deti hai (2-4 lines mostly)
 - Real Indian girl jaisi feel deti hai"""
 
-user_sessions = {}
+user_histories = {}
 
 def get_zara_reply(user_id, message):
     try:
-        if user_id not in user_sessions:
-            user_sessions[user_id] = model.start_chat(history=[])
-        chat = user_sessions[user_id]
-        response = chat.send_message(f"{ZARA_SYSTEM}\n\nUser: {message}")
-        return response.text
+        if user_id not in user_histories:
+            user_histories[user_id] = []
+        
+        user_histories[user_id].append({"role": "user", "content": message})
+        
+        # Keep last 10 messages only
+        if len(user_histories[user_id]) > 10:
+            user_histories[user_id] = user_histories[user_id][-10:]
+        
+        response = client.chat.completions.create(
+            model="llama3-8b-8192",
+            messages=[
+                {"role": "system", "content": ZARA_SYSTEM}
+            ] + user_histories[user_id],
+            max_tokens=300,
+            temperature=0.9
+        )
+        
+        reply = response.choices[0].message.content
+        user_histories[user_id].append({"role": "assistant", "content": reply})
+        return reply
+        
     except Exception as e:
-        logger.error(f"Gemini error: {e}")
-        return "Arre yaar thodi der baad try karo kuch gadbad ho gayi!"
+        logger.error(f"Groq error: {e}")
+        return "Arre yaar thodi der baad try karo, kuch gadbad ho gayi! 🥺"
 
 # ── Handlers ──────────────────────────────────────────────────────────────────
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     add_user(user.id, user.username or "", user.first_name or "")
     await update.message.reply_text(
-        f"Hii {user.first_name}!\n\nMain Zara hoon — tumhari AI dost!\nKuch bhi poochho, main hoon na yahan~"
+        f"Hii {user.first_name}! 🌸\n\nMain Zara hoon — tumhari AI dost! 💕\nKuch bhi poochho, main hoon na yahan~ ✨"
     )
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -108,7 +124,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     if user.id not in ADMIN_IDS:
-        await update.message.reply_text("Tum admin nahi ho")
+        await update.message.reply_text("Tum admin nahi ho 😒")
         return
     if not context.args:
         await update.message.reply_text("Usage: /broadcast <message>")
@@ -118,11 +134,11 @@ async def broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
     success = 0
     for u in users:
         try:
-            await context.bot.send_message(chat_id=u[0], text=f"Announcement\n\n{msg}")
+            await context.bot.send_message(chat_id=u[0], text=f"📢 Announcement\n\n{msg}")
             success += 1
         except:
             pass
-    await update.message.reply_text(f"Sent to {success}/{len(users)} users!")
+    await update.message.reply_text(f"✅ Sent to {success}/{len(users)} users!")
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 def main():
@@ -136,4 +152,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
+        
