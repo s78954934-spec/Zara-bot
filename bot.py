@@ -88,7 +88,7 @@ def get_zara_reply(user_id, message):
             user_histories[user_id] = user_histories[user_id][-10:]
         
         response = client.chat.completions.create(
-            model="llama3-8b-8192",
+            model="llama-3.3-70b-versatile",",
             messages=[
                 {"role": "system", "content": ZARA_SYSTEM}
             ] + user_histories[user_id],
@@ -102,7 +102,7 @@ def get_zara_reply(user_id, message):
         
     except Exception as e:
         logger.error(f"Groq error: {e}")
-        return "Arre yaar thodi der baad try karo, kuch gadbad ho gayi! 🥺"
+        return "Arre yaar thodi der baad ma chudau , abhi me _-_-_ dekh rhi ho ! 🌚🤤"
 
 # ── Handlers ──────────────────────────────────────────────────────────────────
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
