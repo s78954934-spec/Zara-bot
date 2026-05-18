@@ -88,7 +88,7 @@ def get_zara_reply(user_id, message):
             user_histories[user_id] = user_histories[user_id][-10:]
         
         response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",",
+            model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": ZARA_SYSTEM}
             ] + user_histories[user_id],
