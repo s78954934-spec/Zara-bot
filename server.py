@@ -1,7 +1,6 @@
 import os
 import json
 import sqlite3
-import subprocess
 import threading
 import sys
 from flask import Flask, jsonify, request, send_from_directory
@@ -13,20 +12,15 @@ app = Flask(__name__, static_folder="dashboard")
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "zara@admin2025")
 
-# Error log storage
-error_logs = []
-
 def get_db():
     conn = sqlite3.connect("zara.db")
     conn.row_factory = sqlite3.Row
     return conn
 
-# ── Serve Dashboard ───────────────────────────────────────────────────────────
 @app.route("/")
 def index():
     return send_from_directory("dashboard", "index.html")
 
-# ── Stats ─────────────────────────────────────────────────────────────────────
 @app.route("/api/stats")
 def stats():
     try:
@@ -38,7 +32,6 @@ def stats():
     except:
         return jsonify({"total_users": 0, "total_messages": 0})
 
-# ── Users ─────────────────────────────────────────────────────────────────────
 @app.route("/api/users")
 def users():
     try:
@@ -49,7 +42,6 @@ def users():
     except:
         return jsonify([])
 
-# ── Chat Logs ─────────────────────────────────────────────────────────────────
 @app.route("/api/logs")
 def logs():
     try:
@@ -60,21 +52,6 @@ def logs():
     except:
         return jsonify([])
 
-# ── Error Logs ────────────────────────────────────────────────────────────────
-@app.route("/api/errors")
-def get_errors():
-    return jsonify(error_logs[-50:])
-
-@app.route("/api/errors", methods=["POST"])
-def add_error():
-    data = request.json
-    error_logs.append({
-        "message": data.get("message", ""),
-        "timestamp": datetime.now().isoformat()
-    })
-    return jsonify({"ok": True})
-
-# ── Broadcast ─────────────────────────────────────────────────────────────────
 @app.route("/api/broadcast", methods=["POST"])
 def broadcast():
     data = request.json
@@ -90,7 +67,7 @@ def broadcast():
             try:
                 res = requests.post(
                     f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
-                    json={"chat_id": u["user_id"], "text": f"Announcement\n\n{msg}"},
+                    json={"chat_id": u["user_id"], "text": f"📢 Announcement\n\n{msg}"},
                     timeout=5
                 )
                 if res.status_code == 200:
@@ -101,13 +78,9 @@ def broadcast():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# ── Code Editor ───────────────────────────────────────────────────────────────
 @app.route("/api/code", methods=["GET", "POST"])
 def code():
-    file_map = {
-        "bot": "bot.py",
-        "dashboard": "dashboard/index.html"
-    }
+    file_map = {"bot": "bot.py", "dashboard": "dashboard/index.html"}
     if request.method == "GET":
         file_key = request.args.get("file", "bot")
         filepath = file_map.get(file_key, "bot.py")
@@ -124,24 +97,24 @@ def code():
         try:
             with open(filepath, "w") as f:
                 f.write(code_content)
-            return jsonify({"message": "Saved! Bot will restart automatically."})
+            return jsonify({"message": "Saved!"})
         except Exception as e:
             return jsonify({"error": str(e)}), 500
 
-# ── Restart ───────────────────────────────────────────────────────────────────
 @app.route("/api/restart", methods=["POST"])
 def restart():
-    def do_restart():
-        import time
-        time.sleep(1)
-        os.execv(sys.executable, [sys.executable] + sys.argv)
-    threading.Thread(target=do_restart).start()
-    return jsonify({"message": "Restarting..."})
+    return jsonify({"message": "Restart not available in this mode"})
 
-# ── Run ───────────────────────────────────────────────────────────────────────
+def run_bot():
+    os.system("python bot.py")
+
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8080))
-    bot_thread = threading.Thread(target=lambda: os.system("python bot.py"), daemon=True)
+    # Start bot in background thread
+    bot_thread = threading.Thread(target=run_bot, daemon=True)
     bot_thread.start()
-    app.run(host="0.0.0.0", port=port, debug=False)
+    print("Bot thread started!")
     
+    # Start Flask
+    port = int(os.environ.get("PORT", 8080))
+    print(f"Starting Flask on port {port}")
+    app.run(host="0.0.0.0", port=port, debug=False)
